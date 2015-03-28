@@ -1,0 +1,15 @@
+.\main.o: Main.c
+.\main.o: ..\RASLib/inc/common.h
+.\main.o: C:\StellarisWare/inc/hw_types.h
+.\main.o: ..\RASLib/inc/uart.h
+.\main.o: ..\RASLib/inc/gpio.h
+.\main.o: ..\RASLib/inc/time.h
+.\main.o: ..\RASLib/inc/adc.h
+.\main.o: ..\RASLib/inc/motor.h
+.\main.o: ..\RasLib/inc/linesensor.h
+.\main.o: ..\RasLib/inc/i2c.h
+.\main.o: ..\RasLib/inc/servo.h
+.\main.o: ..\RasLib/inc/pwm.h
+.\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdbool.h
+.\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdlib.h
+.\main.o: Main.h
