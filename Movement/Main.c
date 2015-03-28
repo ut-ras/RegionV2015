@@ -116,30 +116,11 @@ void explore(){
 			if(frontWall){
 				//Left
 				turn(LEFT);
-				//update orientation
-				if(orientation==NORTH){
-						orientation = WEST;
-				}
-				else {
-				orientation += -1;
-					}
+				
 			}
 			else{
 				//Forward
 				forward();	//go forward one cell
-				//update cell #
-					if (orientation == NORTH){
-						locCurrent += -7;
-					}
-					else if (orientation == EAST){
-						locCurrent += 1;
-					}
-					else if (orientation == SOUTH){
-						locCurrent += 7;			
-					}
-					else if (orientation == WEST){
-						locCurrent += -1;			
-					}
 
 				if (!endFound) {	
 					if(pastCells[locCurrent] != 1){				//Check for repeat cell in crit path
@@ -161,19 +142,27 @@ void explore(){
 		else{
 			//Right
 			turn(RIGHT);
-			//update orientation
-			if(orientation==4){
-				orientation = 1;
-			}
-			else {
-				orientation += 1;
-			}
 		}
-												//Tell Beaglebone locCurrent
+												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
 	}
 }
 
 void forward(){ 				//Moves forward to middle of next cell
+	
+		//update cell number
+					if (orientation == NORTH){
+						locCurrent += -7;
+					}
+					else if (orientation == EAST){
+						locCurrent += 1;
+					}
+					else if (orientation == SOUTH){
+						locCurrent += 7;			
+					}
+					else if (orientation == WEST){
+						locCurrent += -1;			
+					}
+					
 	while (true) {
 		SetMotor(leftMotor, 1);
 		SetMotor(rightMotor, 1);
@@ -214,18 +203,47 @@ void forward(){ 				//Moves forward to middle of next cell
 }
 
 void turn(int direction){						//turn 90 degrees in place
-	if (direction == RIGHT) { 
-		SetMotor(leftMotor, -1);
-		SetMotor(rightMotor, 1);
+	if (direction == RIGHT) {
+			//update orientation
+			if(orientation==4){
+				orientation = 1;
+			}
+			else {
+				orientation += 1;
+			}
+			//perform turn
+			SetMotor(leftMotor, -1);
+			SetMotor(rightMotor, 1);
 	}
-	if (direction == LEFT) { 
-		SetMotor(leftMotor,  1);
-		SetMotor(rightMotor,-1);
+	if (direction == LEFT) {
+			//update orientation
+			if(orientation==NORTH){
+				orientation = WEST;
+			}
+			else {
+				orientation += -1;
+			}		
+			//perform turn
+			SetMotor(leftMotor,  1);
+			SetMotor(rightMotor,-1);
 	}
 }
 
-void sprint() {
-	
-	nextcell = criticalPath->value;
-
+void setOrientation(int direction){
+	while (orientation != direction) {
+	if ((orientation + 1 == direction)||(orientation - 3 == direction)) {turn(RIGHT);}
+	if ((orientation - 1 == direction)||(orientation + 3 == direction)) {turn(LEFT);}
+	else {turn(RIGHT); turn(RIGHT);}
+	}
 }
+
+void sprint(void) {
+	for(;criticalPath->next != NULL; criticalPath = criticalPath->next){
+		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward();}
+		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward();}
+		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward();}
+		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward();}			
+	}
+	//FINISH LED ON
+}
+
