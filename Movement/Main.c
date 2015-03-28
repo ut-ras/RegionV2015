@@ -26,6 +26,7 @@ static tLineSensor *gls;
 bool endFound;
 int* ptr;
 int pastCells[50];
+int nextcell;
 
 tADC *adc[2];
 //tMotor *servomotor[2];
@@ -63,16 +64,20 @@ void initMotor() {
 }
 
 void init();
+void explore();
+void sprint();
 
 int main () {
 	init();
-	
+	explore();
+	sprint();
 }
 
 void init(){
 	int x = 0;
 	initIRSensor();
 	initMotor();	
+	initGPIOLineSensor();
 	orientation = NORTH;
 	
 	//set start and end locations
@@ -84,19 +89,23 @@ void init(){
 	
 	for(x = 0; x < 49; x++)
 		pastCells[x] = 0;
-	
-	explore();
-	
 }
 
-void follow();
+
+void releaseRest(struct linkedList *list){
+	if(list->next != NULL){
+		releaseRest(list->next);
+	}
+	free(list);
+	
+}
 
 void explore(){
 	while(true){
 		rightSensor = ADCRead(adc[0])*1000;
 		frontSensor = ADCRead(adc[1])*1000;
-		rightWall = rightSensor > 300 ? true : false;
-		frontWall = frontSensor > 300 ? true : false;
+		rightWall = (rightSensor > 300) ? true : false;
+		frontWall = (frontSensor > 300) ? true : false;
 	
 		if(locCurrent == locEnd){
 			//LED ON
@@ -105,16 +114,20 @@ void explore(){
 		
 		if(rightWall){
 			if(frontWall){
-				//turn left
+				//Left
 				turn(LEFT);
-					if(orientation==1){
-						orientation = 4;
-					}
-					else {
-					orientation += -1;
+				//update orientation
+				if(orientation==NORTH){
+						orientation = WEST;
+				}
+				else {
+				orientation += -1;
 					}
 			}
 			else{
+				//Forward
+				forward();	//go forward one cell
+				//update cell #
 					if (orientation == NORTH){
 						locCurrent += -7;
 					}
@@ -127,34 +140,34 @@ void explore(){
 					else if (orientation == WEST){
 						locCurrent += -1;			
 					}
-				forward();	//go forward one cell
+
 				if (!endFound) {	
 					if(pastCells[locCurrent] != 1){				//Check for repeat cell in crit path
 						struct linkedList *link;
-						link->value = locCurrent;						
-						
 						struct linkedList *list = criticalPath;
+						link->value = locCurrent;												
 						for(;list->next != NULL; list = list->next);
 						list->next = link;
 					}else{
 						struct linkedList *list = criticalPath;
 						for(;list->value == locCurrent || list->next != NULL; list = list->next);
+						releaseRest(list->next);
 						list->next = NULL;
-					}
-						
+					}						
 					pastCells[locCurrent] = 1;	//Set Visited
 				}															
 			}
 		}
 		else{
-			//turn right
+			//Right
 			turn(RIGHT);
-				if(orientation==4){
-					orientation = 1;
-				}
-				else {
-					orientation += 1;
-				}
+			//update orientation
+			if(orientation==4){
+				orientation = 1;
+			}
+			else {
+				orientation += 1;
+			}
 		}
 												//Tell Beaglebone locCurrent
 	}
@@ -162,6 +175,11 @@ void explore(){
 
 void forward(){ 				//Moves forward to middle of next cell
 	while (true) {
+		SetMotor(leftMotor, 1);
+		SetMotor(rightMotor, 1);
+		
+		/* Line Following Start point
+		
 		LineSensorReadArray(gls, line);
 		if((line[3]>0.5)&&(line[4]>0.5)){
 			SetMotor(leftMotor, 1);
@@ -191,11 +209,23 @@ void forward(){ 				//Moves forward to middle of next cell
 			SetMotor(leftMotor, .6);
 			SetMotor(rightMotor, .1);
 		}
-	}				
+					*/
+	}
 }
 
-void turn(int direction){						//turns 90 degrees in place
-	//change orientation
+void turn(int direction){						//turn 90 degrees in place
+	if (direction == RIGHT) { 
+		SetMotor(leftMotor, -1);
+		SetMotor(rightMotor, 1);
+	}
+	if (direction == LEFT) { 
+		SetMotor(leftMotor,  1);
+		SetMotor(rightMotor,-1);
+	}
+}
+
+void sprint() {
 	
-}
+	nextcell = criticalPath->value;
 
+}
