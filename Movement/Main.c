@@ -59,8 +59,8 @@ void initIRSensor() {
     adc[1] = InitializeADC(PIN_E4);
 }
 void initMotor() {
-		leftMotor = InitializeServoMotor(PIN_C4,false);			//left motor
-		rightMotor = InitializeServoMotor(PIN_C5,true);			//right motor
+		leftMotor = InitializeServoMotor(PIN_C4,false);				//left motor
+		rightMotor = InitializeServoMotor(PIN_C5,true);				//right motor
 }
 
 void init();
@@ -69,6 +69,7 @@ void sprint();
 
 int main () {
 	init();
+																													//READY GREEN LED ON
 	explore();
 	sprint();
 }
@@ -85,7 +86,7 @@ void init(){
 	locCurrent = 48;
 	locEnd = 9;
 	
-	criticalPath->value = locCurrent;				//set start of crit path
+	criticalPath->value = locCurrent;												//set start of crit path
 	
 	for(x = 0; x < 49; x++)
 		pastCells[x] = 0;
@@ -119,37 +120,37 @@ void explore(){
 				
 			}
 			else{
-				//Forward
-				forward();	//go forward one cell
+																													//Forward
+				forward();																				//go forward one cell
 
 				if (!endFound) {	
-					if(pastCells[locCurrent] != 1){				//Check for repeat cell in crit path
-						struct linkedList *link;
-						struct linkedList *list = criticalPath;
-						link->value = locCurrent;												
-						for(;list->next != NULL; list = list->next);
-						list->next = link;
+					if(pastCells[locCurrent] != 1){									//Check for repeat cell in crit path
+						struct linkedList *link;											//
+						struct linkedList *list = criticalPath;				//Point to path list
+						link->value = locCurrent;											//Add	value to a new struct
+						for(;list->next != NULL; list = list->next);	//Get to end of list
+						list->next = link;														//Add new struct to the list
 					}else{
 						struct linkedList *list = criticalPath;
 						for(;list->value == locCurrent || list->next != NULL; list = list->next);
 						releaseRest(list->next);
 						list->next = NULL;
 					}						
-					pastCells[locCurrent] = 1;	//Set Visited
+					pastCells[locCurrent] = 1;											//Set Visited
 				}															
 			}
 		}
 		else{
-			//Right
+																													//Right
 			turn(RIGHT);
 		}
-												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
+																													//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
 	}
 }
 
-void forward(){ 				//Moves forward to middle of next cell
+void forward(){ 																					//Moves forward to middle of next cell
 	
-		//update cell number
+																													//update cell number
 					if (orientation == NORTH){
 						locCurrent += -7;
 					}
@@ -202,28 +203,28 @@ void forward(){ 				//Moves forward to middle of next cell
 	}
 }
 
-void turn(int direction){						//turn 90 degrees in place
+void turn(int direction){																	//turn 90 degrees in place
 	if (direction == RIGHT) {
-			//update orientation
+																													//update orientation
 			if(orientation==4){
 				orientation = 1;
 			}
 			else {
 				orientation += 1;
 			}
-			//perform turn
+																													//perform turn
 			SetMotor(leftMotor, -1);
 			SetMotor(rightMotor, 1);
 	}
 	if (direction == LEFT) {
-			//update orientation
+																													//update orientation
 			if(orientation==NORTH){
 				orientation = WEST;
 			}
 			else {
 				orientation += -1;
 			}		
-			//perform turn
+																													//perform turn
 			SetMotor(leftMotor,  1);
 			SetMotor(rightMotor,-1);
 	}
@@ -238,12 +239,12 @@ void setOrientation(int direction){
 }
 
 void sprint(void) {
-	for(;criticalPath->next != NULL; criticalPath = criticalPath->next){
+	for(;criticalPath->next != NULL || criticalPath->value != locEnd; criticalPath = criticalPath->next){
 		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward();}
 		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward();}
 		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward();}
-		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward();}			
+		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward();}
 	}
-	//FINISH LED ON
+																													//FINISH RED LED ON
 }
 
