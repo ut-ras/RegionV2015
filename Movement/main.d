@@ -13,3 +13,4 @@
 .\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdbool.h
 .\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdlib.h
 .\main.o: Main.h
+.\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdint.h

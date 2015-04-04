@@ -8,14 +8,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "Main.h"
+#include <stdint.h>
 #define LEFT 1
 #define RIGHT -1
-
 #define NORTH 1
 #define EAST 2
 #define SOUTH 3
 #define WEST 4
-
 int locCurrent;
 int locStart;
 int locEnd;
@@ -36,6 +35,25 @@ float frontSensor;
 float rightSensor;
 float line[8];
 
+//Maze Optimization Seeing Easter-egg Solver II (MOSES II)
+//TODO:
+//Tell Vision Processing the cell we are in everytime we change cells
+//Utilize Encoders
+
+void initGPIOLineSensor(void) {
+    // use 8 I/O pins to initialize a GPIO line sensor
+    //gls = InitializeGPIOLineSensor();    
+}
+
+void initIRSensor() {
+    adc[0] = InitializeADC(PIN_E1); 																//right
+    adc[1] = InitializeADC(PIN_E0);																	//front
+}
+void initMotor() {
+		leftMotor = InitializeTLEMotor(PIN_D2,PIN_D3,true,false);				//left 
+		rightMotor = InitializeTLEMotor(PIN_D0,PIN_D1,true,true);				//right
+}
+
 struct linkedList{
 	int value;
 	struct linkedList *next;
@@ -43,29 +61,9 @@ struct linkedList{
 
 struct linkedList *criticalPath;
 
-//Maze Optimization Seeing Easter-egg Solver II (MOSES II)
-
-//Tell Vision Processing the cell we are in everytime we change cells
-//Give Maze Navigation a list of Cells from Start to End (Not After)
-
-
-void initGPIOLineSensor(void) {
-    // use 8 I/O pins to initialize a GPIO line sensor
-    gls = InitializeGPIOLineSensor(PIN_C7, PIN_C6, PIN_E0, PIN_D3, PIN_D2, PIN_D1, PIN_D0, PIN_B5);    
-}
-
-void initIRSensor() {
-    adc[0] = InitializeADC(PIN_E5);
-    adc[1] = InitializeADC(PIN_E4);
-}
-void initMotor() {
-		leftMotor = InitializeServoMotor(PIN_C4,false);				//left motor
-		rightMotor = InitializeServoMotor(PIN_C5,true);				//right motor
-}
-
-void init();
-void explore();
-void sprint();
+void init(void);
+void explore(void);
+void sprint(void);
 
 int main () {
 	init();
@@ -79,6 +77,7 @@ void init(){
 	initIRSensor();
 	initMotor();	
 	initGPIOLineSensor();
+	InitializeSystemTime();
 	orientation = NORTH;
 	
 	//set start and end locations
@@ -102,27 +101,26 @@ void releaseRest(struct linkedList *list){
 }
 
 void explore(){
-	while(true){
+	int startTime;
+	int time;
+	bool limit = true;
+	startTime = GetTime();
+	
+	while(limit){
+		
+		time = GetTime(); 
+		if (time-startTime >= 180){limit = false;}
+		
 		rightSensor = ADCRead(adc[0])*1000;
 		frontSensor = ADCRead(adc[1])*1000;
 		rightWall = (rightSensor > 300) ? true : false;
 		frontWall = (frontSensor > 300) ? true : false;
 	
-		if(locCurrent == locEnd){
-			//LED ON
-			endFound = true;
-		}
-		
+		if(locCurrent == locEnd){endFound = true;}						//GREEN LED ON
 		if(rightWall){
-			if(frontWall){
-				//Left
-				turn(LEFT);
-				
-			}
+			if(frontWall){turn(LEFT);}
 			else{
-																													//Forward
-				forward();																				//go forward one cell
-
+				forward();																				//Forward one cell
 				if (!endFound) {	
 					if(pastCells[locCurrent] != 1){									//Check for repeat cell in crit path
 						struct linkedList *link;											//
@@ -136,37 +134,28 @@ void explore(){
 						releaseRest(list->next);
 						list->next = NULL;
 					}						
-					pastCells[locCurrent] = 1;											//Set Visited
+					pastCells[locCurrent] = 1;											//Set cell to visited
 				}															
 			}
 		}
-		else{
-																													//Right
-			turn(RIGHT);
-		}
+		else{turn(RIGHT);}
 																													//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
 	}
 }
 
 void forward(){ 																					//Moves forward to middle of next cell
-	
 																													//update cell number
-					if (orientation == NORTH){
-						locCurrent += -7;
-					}
-					else if (orientation == EAST){
-						locCurrent += 1;
-					}
-					else if (orientation == SOUTH){
-						locCurrent += 7;			
-					}
-					else if (orientation == WEST){
-						locCurrent += -1;			
-					}
+	if 			(orientation == NORTH)	{locCurrent += -7;}
+	else if (orientation == EAST)		{locCurrent += 1;}
+	else if (orientation == SOUTH)	{locCurrent += 7;}
+	else if (orientation == WEST)		{locCurrent += -1;}
 					
 	while (true) {
 		SetMotor(leftMotor, 1);
 		SetMotor(rightMotor, 1);
+		WaitUS(50);
+		SetMotor(leftMotor,  0);
+		SetMotor(rightMotor, 0);
 		
 		/* Line Following Start point
 		
@@ -206,27 +195,25 @@ void forward(){ 																					//Moves forward to middle of next cell
 void turn(int direction){																	//turn 90 degrees in place
 	if (direction == RIGHT) {
 																													//update orientation
-			if(orientation==4){
-				orientation = 1;
-			}
-			else {
-				orientation += 1;
-			}
+			if(orientation==WEST){orientation = NORTH;}
+			else 							{orientation += 1;}
 																													//perform turn
 			SetMotor(leftMotor, -1);
 			SetMotor(rightMotor, 1);
+			WaitUS(50);
+			SetMotor(leftMotor,  0);
+			SetMotor(rightMotor, 0);
 	}
 	if (direction == LEFT) {
 																													//update orientation
-			if(orientation==NORTH){
-				orientation = WEST;
-			}
-			else {
-				orientation += -1;
-			}		
+			if(orientation==NORTH){orientation = WEST;}
+			else 									{orientation += -1;}		
 																													//perform turn
 			SetMotor(leftMotor,  1);
 			SetMotor(rightMotor,-1);
+			WaitUS(50);
+			SetMotor(leftMotor,  0);
+			SetMotor(rightMotor, 0);
 	}
 }
 
