@@ -302,8 +302,8 @@ void ResetHandler(void) {
     // Note that this does not use DriverLib since it might not be included in
     // this project.
     HWREG(NVIC_CPAC) = ((HWREG(NVIC_CPAC) &
-                         ~(NVIC_CPAC_CP10_M | NVIC_CPAC_CP11_M)) |
-                        NVIC_CPAC_CP10_FULL | NVIC_CPAC_CP11_FULL);
+                        ~(NVIC_CPAC_CP10_M | NVIC_CPAC_CP11_M)) |
+                       NVIC_CPAC_CP10_FULL | NVIC_CPAC_CP11_FULL);
     
     // Initialize RASLib
     InitializeMCU();

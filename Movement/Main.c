@@ -40,6 +40,103 @@ float line[8];
 //Tell Vision Processing the cell we are in everytime we change cells
 //Utilize Encoders
 
+// Definition of struct Motor
+typedef struct TLEMotor {
+    // Motor 'abstract' function
+    void (*SetMotor)(struct TLEMotor *mtr, float input);
+
+    // PWM signals used by motors
+    tPWM *pwm0;
+    tPWM *pwm1;
+
+    // True if braking is applied
+    tBoolean brake;
+
+    // Set to switch motor direction
+    tBoolean invert;
+} tTLEMotor;
+
+// Buffer of motor structs to use
+// There can only be the total count of pins/2 since each
+// motor needs 2 pins
+static tTLEMotor tleMotorBuffer[PIN_COUNT / 2];
+
+static int tleMotorCount = 0;
+
+
+// This function sets a motor speed
+static void SetDRVMotor(tTLEMotor *mtr, float input) { 
+    // Check the input range
+    if (input > 1 || input < -1)
+        return;
+    
+    // invert if set
+    if (mtr->invert)
+        input *= -1;
+
+    // Operate the motor controller
+    // Motor controller operation is specific 
+    // to the TLE5205-2
+    if (mtr->brake) {
+        if (input < 0) {
+            // CCW (P, ~P)			
+            SetPWM(mtr->pwm0, 0.0f, 0.0f);
+            SetPWM(mtr->pwm1, 1.0f-input, 0.0f);					
+     //       SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
+     //       SetPWM(mtr->pwm1, -input, 1.0f+input);
+        } else if (input > 0) {
+            // CW (P, 0)
+            SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
+            SetPWM(mtr->pwm1, 0.0f, 0.0f);
+        } else {
+            // S (1, 0)
+            SetPWM(mtr->pwm0, 1.0f, 0.0f);
+            SetPWM(mtr->pwm1, 1.0f, 0.0f);
+        }
+    } else {
+        if (input < 0) {
+            // CCW (P, 1)
+            SetPWM(mtr->pwm0, 0.0f, 0.0f);
+            SetPWM(mtr->pwm1, 1.0f-input, 0.0f);
+ //           SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
+  //          SetPWM(mtr->pwm1, 1.0f, 0.0f);
+        } else if (input > 0) {
+            // CW (P, P)
+            SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
+            SetPWM(mtr->pwm1, 0.0f, 0.0f);
+        } else {
+            // S (1, 1)
+            SetPWM(mtr->pwm0, 1.0f, 0.0f);
+            SetPWM(mtr->pwm1, 1.0f, 0.0f);
+        }
+    }
+}
+
+// Function to initialize a motor on a pair of pins
+// The returned pointer can be used by the SetMotor function
+tTLEMotor *_InitializeDRVMotor(tPin a, tPin b, tBoolean brake, tBoolean invert) {
+    // Grab the next motor
+    tTLEMotor *mtr = &tleMotorBuffer[tleMotorCount++];
+    
+    // Setup the initial data
+    mtr->brake = brake;
+    mtr->invert = invert;
+    
+    // Initialize pwm on both pins
+    mtr->pwm0 = InitializePWM(a, 1600.0f);
+    mtr->pwm1 = InitializePWM(b, 1600.0f);
+
+    // Set parent methods
+    mtr->SetMotor = SetDRVMotor;
+    
+    // Return the new motor
+    return mtr;
+}
+
+tMotor *InitializeDRVMotor(tPin a, tPin b, tBoolean brake, tBoolean invert) {
+    return (tMotor *)_InitializeDRVMotor(a, b, brake, invert);
+}
+
 void initGPIOLineSensor(void) {
     // use 8 I/O pins to initialize a GPIO line sensor
     //gls = InitializeGPIOLineSensor();    
@@ -50,8 +147,8 @@ void initIRSensor() {
     adc[1] = InitializeADC(PIN_E0);																	//front
 }
 void initMotor() {
-		leftMotor = InitializeTLEMotor(PIN_D2,PIN_D3,true,false);				//left 
-		rightMotor = InitializeTLEMotor(PIN_D0,PIN_D1,true,true);				//right
+		rightMotor = InitializeDRVMotor(PIN_D2,PIN_D3,true,false);				
+		leftMotor = InitializeDRVMotor(PIN_D0,PIN_D1,true,false);				
 }
 
 struct linkedList{
@@ -66,8 +163,11 @@ void explore(void);
 void sprint(void);
 
 int main () {
-	init();
-																													//READY GREEN LED ON
+	init();		
+	SetMotor(rightMotor, 1);
+	SetMotor(leftMotor, -1);
+	while(1){};
+	//READY GREEN LED ON
 	explore();
 	sprint();
 }
@@ -101,6 +201,7 @@ void releaseRest(struct linkedList *list){
 }
 
 void explore(){
+	
 	int startTime;
 	int time;
 	bool limit = true;
@@ -149,14 +250,13 @@ void forward(){ 																					//Moves forward to middle of next cell
 	else if (orientation == EAST)		{locCurrent += 1;}
 	else if (orientation == SOUTH)	{locCurrent += 7;}
 	else if (orientation == WEST)		{locCurrent += -1;}
-					
-	while (true) {
+		SetPin(PIN_F3,true);			
 		SetMotor(leftMotor, 1);
 		SetMotor(rightMotor, 1);
-		WaitUS(50);
+		WaitUS(200);
 		SetMotor(leftMotor,  0);
 		SetMotor(rightMotor, 0);
-		
+		SetPin(PIN_F3,false);
 		/* Line Following Start point
 		
 		LineSensorReadArray(gls, line);
@@ -189,7 +289,7 @@ void forward(){ 																					//Moves forward to middle of next cell
 			SetMotor(rightMotor, .1);
 		}
 					*/
-	}
+	
 }
 
 void turn(int direction){																	//turn 90 degrees in place
@@ -197,23 +297,25 @@ void turn(int direction){																	//turn 90 degrees in place
 																													//update orientation
 			if(orientation==WEST){orientation = NORTH;}
 			else 							{orientation += 1;}
-																													//perform turn
+			SetPin(PIN_F1,true);																											//perform turn
 			SetMotor(leftMotor, -1);
 			SetMotor(rightMotor, 1);
-			WaitUS(50);
+			WaitUS(200);
 			SetMotor(leftMotor,  0);
 			SetMotor(rightMotor, 0);
+			SetPin(PIN_F1,false);	
 	}
 	if (direction == LEFT) {
 																													//update orientation
 			if(orientation==NORTH){orientation = WEST;}
 			else 									{orientation += -1;}		
-																													//perform turn
+			SetPin(PIN_F2,true);																											//perform turn
 			SetMotor(leftMotor,  1);
 			SetMotor(rightMotor,-1);
-			WaitUS(50);
+			WaitUS(200);
 			SetMotor(leftMotor,  0);
 			SetMotor(rightMotor, 0);
+			SetPin(PIN_F2,false);	
 	}
 }
 
