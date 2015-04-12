@@ -139,7 +139,7 @@ tMotor *InitializeDRVMotor(tPin a, tPin b, tBoolean brake, tBoolean invert) {
 
 void initGPIOLineSensor(void) {
     // use 8 I/O pins to initialize a GPIO line sensor
-    //gls = InitializeGPIOLineSensor();    
+    gls = InitializeGPIOLineSensor(PIN_C7, PIN_C6, PIN_C5, PIN_C4, PIN_B3, PIN_B2, PIN_B1, PIN_B0);    
 }
 
 void initIRSensor() {
@@ -164,10 +164,12 @@ void sprint(void);
 
 int main () {
 	init();		
-	SetMotor(rightMotor, 1);
-	SetMotor(leftMotor, -1);
-	while(1){};
-	//READY GREEN LED ON
+	
+//	while (GetPin(PIN_F0)){	};
+//	while (!GetPin(PIN_F0)){ };		
+
+	forward();
+		
 	explore();
 	sprint();
 }
@@ -176,7 +178,9 @@ void init(){
 	int x = 0;
 	initIRSensor();
 	initMotor();	
+	InitializeGPIO();
 	initGPIOLineSensor();
+	PullUpPin(PIN_F0);
 	InitializeSystemTime();
 	orientation = NORTH;
 	
@@ -206,9 +210,10 @@ void explore(){
 	int time;
 	bool limit = true;
 	startTime = GetTime();
-	
-	while(limit){
-		
+	bool stop = true;
+	while(stop){
+		Wait(1);
+//		if (GetPin(PIN_F0)){stop = false;};
 		time = GetTime(); 
 		if (time-startTime >= 180){limit = false;}
 		
@@ -218,10 +223,9 @@ void explore(){
 		frontWall = (frontSensor > 300) ? true : false;
 	
 		if(locCurrent == locEnd){endFound = true;}						//GREEN LED ON
-		if(rightWall){
-			if(frontWall){turn(LEFT);}
-			else{
-				forward();																				//Forward one cell
+		if			(rightWall&&frontWall){turn(LEFT);}
+		else if	(rightWall&&!frontWall){forward();	
+																						//Forward one cell
 				if (!endFound) {	
 					if(pastCells[locCurrent] != 1){									//Check for repeat cell in crit path
 						struct linkedList *link;											//
@@ -237,85 +241,92 @@ void explore(){
 					}						
 					pastCells[locCurrent] = 1;											//Set cell to visited
 				}															
-			}
-		}
-		else{turn(RIGHT);}
-																													//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
+			}		
+		else if (!rightWall){turn(RIGHT);}																												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
 	}
 }
 
 void forward(){ 																					//Moves forward to middle of next cell
-																													//update cell number
+	int i;							
+	float line[8];
+	//update cell number
 	if 			(orientation == NORTH)	{locCurrent += -7;}
 	else if (orientation == EAST)		{locCurrent += 1;}
 	else if (orientation == SOUTH)	{locCurrent += 7;}
 	else if (orientation == WEST)		{locCurrent += -1;}
-		SetPin(PIN_F3,true);			
-		SetMotor(leftMotor, 1);
-		SetMotor(rightMotor, 1);
-		WaitUS(200);
-		SetMotor(leftMotor,  0);
-		SetMotor(rightMotor, 0);
-		SetPin(PIN_F3,false);
-		/* Line Following Start point
-		
+//		SetPin(PIN_F3,true);			
+//		SetMotor(leftMotor, 1);
+//		SetMotor(rightMotor, 1);
+//		Wait(2);
+//		SetMotor(leftMotor,  0);
+//		SetMotor(rightMotor, 0);
+//		SetPin(PIN_F3,false);
+		 
+	//Line Following Start point
+	while(1){	
 		LineSensorReadArray(gls, line);
-		if((line[3]>0.5)&&(line[4]>0.5)){
+		Printf("Line Sensor: [");
+		for (i = 0; i < 8; i++) {
+			Printf("%.2f ", line[i]);
+     }
+		Printf("\b]        \r");
+		/*
+		if (line[0]>0.5&&line[1]>0.5){
+			SetMotor(leftMotor, .2);
+			SetMotor(rightMotor, .4);
+		}		
+		else if (line[1]>0.5&&line[2]>0.5){
+			SetMotor(leftMotor, .4);
+			SetMotor(rightMotor, .6);
+		}		
+		else if (line[2]>0.5&&line[3]>0.5){
+			SetMotor(leftMotor, .6);
+			SetMotor(rightMotor, .8);
+		}		
+		else if((line[3]>0.5)&&(line[4]>0.5)){
 			SetMotor(leftMotor, 1);
 			SetMotor(rightMotor, 1);
 		}
-		else if (line[5]>0.5&&line[4]>0.5){
+		else if (line[4]>0.5&&line[5]>0.5){
 			SetMotor(leftMotor, .8);
+			SetMotor(rightMotor, .6);
+		}
+		else if (line[5]>0.5&&line[6]>0.5){
+			SetMotor(leftMotor, .6);
 			SetMotor(rightMotor, .4);
-		}
-		else if (line[2]>0.5&&line[3]>0.5){
+		}		
+		else if (line[6]>0.5&&line[7]>0.5){
 			SetMotor(leftMotor, .4);
-			SetMotor(rightMotor, .8);
-		}
-		else if (line[7]>0.5&&line[6]>0.5){
-			SetMotor(leftMotor, .3);
-			SetMotor(rightMotor, -.25);
-		}
-		else if (line[0]>0.5&&line[1]>0.5){
-			SetMotor(leftMotor, -.25);
-			SetMotor(rightMotor, .3);
-		}
-		else if (line[6]>0.5&&line[5]>0.5){
-			SetMotor(leftMotor, .6);
-			SetMotor(rightMotor, .1);
-		}
-		else if (line[1]>0.5&&line[2]>0.5){
-			SetMotor(leftMotor, .6);
-			SetMotor(rightMotor, .1);
-		}
-					*/
-	
+			SetMotor(rightMotor, .2);
+		}		*/
+	}		
 }
 
 void turn(int direction){																	//turn 90 degrees in place
 	if (direction == RIGHT) {
-																													//update orientation
-			if(orientation==WEST){orientation = NORTH;}
-			else 							{orientation += 1;}
-			SetPin(PIN_F1,true);																											//perform turn
-			SetMotor(leftMotor, -1);
-			SetMotor(rightMotor, 1);
-			WaitUS(200);
-			SetMotor(leftMotor,  0);
-			SetMotor(rightMotor, 0);
-			SetPin(PIN_F1,false);	
+		SetMotor(leftMotor,  1);
+		SetMotor(rightMotor,-1);
+		Wait(.40);
+		SetMotor(leftMotor,  0);
+		SetMotor(rightMotor, 0);
+		//update orientation
+		if(orientation==WEST){
+			orientation = NORTH;}
+		else{
+			orientation += 1;}
+	
 	}
 	if (direction == LEFT) {
 																													//update orientation
 			if(orientation==NORTH){orientation = WEST;}
 			else 									{orientation += -1;}		
-			SetPin(PIN_F2,true);																											//perform turn
-			SetMotor(leftMotor,  1);
-			SetMotor(rightMotor,-1);
-			WaitUS(200);
+			SetPin(PIN_F1,true);																											//perform turn
+			SetMotor(leftMotor,-1);
+			SetMotor(rightMotor,1);
+			Wait(.40);
 			SetMotor(leftMotor,  0);
 			SetMotor(rightMotor, 0);
-			SetPin(PIN_F2,false);	
+			SetPin(PIN_F1,false);	
 	}
 }
 
