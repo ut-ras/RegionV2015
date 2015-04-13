@@ -164,8 +164,8 @@ int main () {
 	//+while (GetPin(PIN_F0)){	};
 	//while (!GetPin(PIN_F0)){ };		
 
-	
-	forward();
+	double speed = .5;
+	forward(speed);
 	explore();
 	sprint();
 }
@@ -201,17 +201,18 @@ void releaseRest(struct linkedList *list){
 }
 
 void explore(){
-	
-	int startTime;
-	int time;
-	bool limit = true;
-	startTime = GetTime();
+	double speed = 1;
 	bool stop = true;
+//	int startTime;
+//	int time;
+//	bool limit = true;
+//	startTime = GetTime();
+
 	while(stop){
 		Wait(1);
-//		if (GetPin(PIN_F0)){stop = false;};
-		time = GetTime(); 
-		if (time-startTime >= 180){limit = false;}
+		if (GetPin(PIN_F0)){stop = false;};
+//		time = GetTime(); 
+//		if (time-startTime >= 180){limit = false;}
 		
 		rightSensor = ADCRead(adc[0])*1000;
 		frontSensor = ADCRead(adc[1])*1000;
@@ -220,7 +221,7 @@ void explore(){
 	
 		if(locCurrent == locEnd){endFound = true;}						//GREEN LED ON
 		if			(rightWall&&frontWall){turn(LEFT);}
-		else if	(rightWall&&!frontWall){forward();	
+		else if	(rightWall&&!frontWall){forward(speed);	
 																						//Forward one cell
 				if (!endFound) {	
 					if(pastCells[locCurrent] != 1){									//Check for repeat cell in crit path
@@ -242,90 +243,81 @@ void explore(){
 	}
 }
 
-void forward(){ 																					//Moves forward to middle of next cell
-	int i;							
+void forward(double speed){ 
+																					
+	int i;
+	int curve[8];	
 	float line[8];
+	int curvetotal;
+	int numLineSensor = 0;
+	
 	//update cell number
 	if 			(orientation == NORTH)	{locCurrent += -7;}
 	else if (orientation == EAST)		{locCurrent += 1;}
 	else if (orientation == SOUTH)	{locCurrent += 7;}
 	else if (orientation == WEST)		{locCurrent += -1;}
-//		SetPin(PIN_F3,true);			
-//		SetMotor(leftMotor, 1);
-//		SetMotor(rightMotor, 1);
-//		Wait(2);
-//		SetMotor(leftMotor,  0);
-//		SetMotor(rightMotor, 0);
-//		SetPin(PIN_F3,false);
-		 
-	//Line Following Start point
 
-	while(1){	
-		LineSensorReadArray(gls, line);
-
-        int i;
-        float line[8];
-				int curve[8];
-				int curvetotal = 0;
-        // put the values of the line sensor into the 'line' array 
-        LineSensorReadArray(gls, line);
+	while(numLineSensor <= 5){	
+				curvetotal = 0;
+				numLineSensor = 0;
+				LineSensorReadArray(gls, line); 
         Printf("Line Sensor: [");
         for (i = 0; i < 8; i++) {
-					if(line[i]>.5){
+					if(line[i]>.5f){
 						curve[i] =1;
+						numLineSensor++;
 					}
 					else{
-						curve[i] =0;
+					curve[i] =0;
 					}
 					if (((curve[i])==1)&&(abs(i-3)>curvetotal)){
 						curvetotal = (i-3);
 					};
-      //    Printf("%d ", curve[i]);
         }
-    Printf("%d ", curvetotal);
+				Printf("%d ", curvetotal);
         Printf("\b]        \r");
-				
-    
-		 //line[0] is far left
-		 
-		if 			(curvetotal==-3){
-			SetMotor(leftMotor, .5);
-			SetMotor(rightMotor, .6);
-		}		
-		else if (curvetotal==-2){
-			SetMotor(leftMotor, .5);
-			SetMotor(rightMotor, .7);
-		}		
-		else if (curvetotal==-1){
-			SetMotor(leftMotor, .6);
-			SetMotor(rightMotor, .7);
-		}		
-		else if	(curvetotal==0){
-			SetMotor(leftMotor, .7);
-			SetMotor(rightMotor, .7);
-		}
-		else if (curvetotal==1){
-			SetMotor(leftMotor, .7);
-			SetMotor(rightMotor, .7);
-		}
-		else if (curvetotal==2){
-			SetMotor(leftMotor, .7);
-			SetMotor(rightMotor, .6);
-		}		
-		else if (curvetotal==3){
-			SetMotor(leftMotor, .7);
-			SetMotor(rightMotor, .5);
-		}		
-		else if (curvetotal==4){
-			SetMotor(leftMotor, .6);
-			SetMotor(rightMotor, .5);
-		}
-		else {
-			SetMotor(leftMotor, 0);
-			SetMotor(rightMotor, 0);
-		};
 		
+				//line[0] is far left
+				 
+				if 			(curvetotal==-3){
+					SetMotor(leftMotor, speed*.8);
+					SetMotor(rightMotor, speed*.9);
+				}		
+				else if (curvetotal==-2){
+					SetMotor(leftMotor, speed*.8);
+					SetMotor(rightMotor, speed);
+				}		
+				else if (curvetotal==-1){
+					SetMotor(leftMotor, speed*.9);
+					SetMotor(rightMotor, speed);
+				}		
+				else if	(curvetotal==0){
+					SetMotor(leftMotor, speed);
+					SetMotor(rightMotor, speed);
+				}
+				else if (curvetotal==1){
+					SetMotor(leftMotor, speed);
+					SetMotor(rightMotor, speed);
+				}
+				else if (curvetotal==2){
+					SetMotor(leftMotor, speed);
+					SetMotor(rightMotor, speed*.9);
+				}		
+				else if (curvetotal==3){
+					SetMotor(leftMotor, speed);
+					SetMotor(rightMotor, speed*.8);
+				}		
+				else if (curvetotal==4){
+					SetMotor(leftMotor, speed*.9);
+					SetMotor(rightMotor, speed*.8);
+				}
+				else {
+					SetMotor(leftMotor, 0);
+					SetMotor(rightMotor, 0);
+				};
 	}		
+	SetMotor(leftMotor, 0);
+	SetMotor(rightMotor, 0);
 }
 
 void turn(int direction){																	//turn 90 degrees in place
@@ -365,11 +357,12 @@ void setOrientation(int direction){
 }
 
 void sprint(void) {
+	double speed = 1;
 	for(;criticalPath->next != NULL || criticalPath->value != locEnd; criticalPath = criticalPath->next){
-		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward();}
-		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward();}
-		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward();}
-		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward();}
+		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward(speed);}
+		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward(speed);}
+		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward(speed);}
+		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward(speed);}
 	}
 																													//FINISH RED LED ON
 }
