@@ -81,12 +81,10 @@ static void SetDRVMotor(tTLEMotor *mtr, float input) {
         if (input < 0) {
             // CCW (P, ~P)			
             SetPWM(mtr->pwm0, 0.0f, 0.0f);
-            SetPWM(mtr->pwm1, 1.0f-input, 0.0f);					
-     //       SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
-     //       SetPWM(mtr->pwm1, -input, 1.0f+input);
+            SetPWM(mtr->pwm1, (input), 0.0f);					
         } else if (input > 0) {
             // CW (P, 0)
-            SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
+            SetPWM(mtr->pwm0, (input), 0.0f);
             SetPWM(mtr->pwm1, 0.0f, 0.0f);
         } else {
             // S (1, 0)
@@ -97,12 +95,10 @@ static void SetDRVMotor(tTLEMotor *mtr, float input) {
         if (input < 0) {
             // CCW (P, 1)
             SetPWM(mtr->pwm0, 0.0f, 0.0f);
-            SetPWM(mtr->pwm1, 1.0f-input, 0.0f);
- //           SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
-  //          SetPWM(mtr->pwm1, 1.0f, 0.0f);
+            SetPWM(mtr->pwm1, (input), 0.0f);
         } else if (input > 0) {
             // CW (P, P)
-            SetPWM(mtr->pwm0, 1.0f+input, 0.0f);
+            SetPWM(mtr->pwm0, (input), 0.0f);
             SetPWM(mtr->pwm1, 0.0f, 0.0f);
         } else {
             // S (1, 1)
@@ -165,11 +161,11 @@ void sprint(void);
 int main () {
 	init();		
 	
-//	while (GetPin(PIN_F0)){	};
-//	while (!GetPin(PIN_F0)){ };		
+	//+while (GetPin(PIN_F0)){	};
+	//while (!GetPin(PIN_F0)){ };		
 
+	
 	forward();
-		
 	explore();
 	sprint();
 }
@@ -263,42 +259,72 @@ void forward(){ 																					//Moves forward to middle of next cell
 //		SetPin(PIN_F3,false);
 		 
 	//Line Following Start point
+
 	while(1){	
 		LineSensorReadArray(gls, line);
-		Printf("Line Sensor: [");
-		for (i = 0; i < 8; i++) {
-			Printf("%.2f ", line[i]);
-     }
-		Printf("\b]        \r");
-		/*
-		if (line[0]>0.5&&line[1]>0.5){
-			SetMotor(leftMotor, .2);
-			SetMotor(rightMotor, .4);
-		}		
-		else if (line[1]>0.5&&line[2]>0.5){
-			SetMotor(leftMotor, .4);
+
+        int i;
+        float line[8];
+				int curve[8];
+				int curvetotal = 0;
+        // put the values of the line sensor into the 'line' array 
+        LineSensorReadArray(gls, line);
+        Printf("Line Sensor: [");
+        for (i = 0; i < 8; i++) {
+					if(line[i]>.5){
+						curve[i] =1;
+					}
+					else{
+						curve[i] =0;
+					}
+					if (((curve[i])==1)&&(abs(i-3)>curvetotal)){
+						curvetotal = (i-3);
+					};
+      //    Printf("%d ", curve[i]);
+        }
+    Printf("%d ", curvetotal);
+        Printf("\b]        \r");
+				
+    
+		 //line[0] is far left
+		 
+		if 			(curvetotal==-3){
+			SetMotor(leftMotor, .5);
 			SetMotor(rightMotor, .6);
 		}		
-		else if (line[2]>0.5&&line[3]>0.5){
-			SetMotor(leftMotor, .6);
-			SetMotor(rightMotor, .8);
+		else if (curvetotal==-2){
+			SetMotor(leftMotor, .5);
+			SetMotor(rightMotor, .7);
 		}		
-		else if((line[3]>0.5)&&(line[4]>0.5)){
-			SetMotor(leftMotor, 1);
-			SetMotor(rightMotor, 1);
+		else if (curvetotal==-1){
+			SetMotor(leftMotor, .6);
+			SetMotor(rightMotor, .7);
+		}		
+		else if	(curvetotal==0){
+			SetMotor(leftMotor, .7);
+			SetMotor(rightMotor, .7);
 		}
-		else if (line[4]>0.5&&line[5]>0.5){
-			SetMotor(leftMotor, .8);
+		else if (curvetotal==1){
+			SetMotor(leftMotor, .7);
+			SetMotor(rightMotor, .7);
+		}
+		else if (curvetotal==2){
+			SetMotor(leftMotor, .7);
 			SetMotor(rightMotor, .6);
-		}
-		else if (line[5]>0.5&&line[6]>0.5){
-			SetMotor(leftMotor, .6);
-			SetMotor(rightMotor, .4);
 		}		
-		else if (line[6]>0.5&&line[7]>0.5){
-			SetMotor(leftMotor, .4);
-			SetMotor(rightMotor, .2);
-		}		*/
+		else if (curvetotal==3){
+			SetMotor(leftMotor, .7);
+			SetMotor(rightMotor, .5);
+		}		
+		else if (curvetotal==4){
+			SetMotor(leftMotor, .6);
+			SetMotor(rightMotor, .5);
+		}
+		else {
+			SetMotor(leftMotor, 0);
+			SetMotor(rightMotor, 0);
+		};
+		
 	}		
 }
 
