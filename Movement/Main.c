@@ -161,11 +161,13 @@ void sprint(void);
 int main () {
 	init();		
 	
-	//+while (GetPin(PIN_F0)){	};
-	//while (!GetPin(PIN_F0)){ };		
-
-	double speed = .5;
-	forward(speed);
+	while (GetPin(PIN_F0)){	};
+	SetPin(PIN_F2,1);
+	double speed = .2;
+	turn(RIGHT);
+	//forward(speed);
+	SetPin(PIN_F2,0);
+	while(1){};
 	explore();
 	sprint();
 }
@@ -176,7 +178,7 @@ void init(){
 	initMotor();	
 	InitializeGPIO();
 	initGPIOLineSensor();
-	PullUpPin(PIN_F0);
+	//PullUpPin(PIN_F0);
 	InitializeSystemTime();
 	orientation = NORTH;
 	
@@ -257,13 +259,13 @@ void forward(double speed){
 	else if (orientation == SOUTH)	{locCurrent += 7;}
 	else if (orientation == WEST)		{locCurrent += -1;}
 
-	while(numLineSensor <= 5){	
+	while( numLineSensor <= 6 ){	
 				curvetotal = 0;
 				numLineSensor = 0;
 				LineSensorReadArray(gls, line); 
         Printf("Line Sensor: [");
         for (i = 0; i < 8; i++) {
-					if(line[i]>.5f){
+					if(line[i]>.8f){
 						curve[i] =1;
 						numLineSensor++;
 					}
@@ -277,11 +279,33 @@ void forward(double speed){
 				Printf("%d ", curvetotal);
         Printf("\b]        \r");
 		
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 				//line[0] is far left
 				 
 				if 			(curvetotal==-3){
-					SetMotor(leftMotor, speed*.8);
-					SetMotor(rightMotor, speed*.9);
+					SetMotor(leftMotor, speed*.6);
+					SetMotor(rightMotor, speed);
 				}		
 				else if (curvetotal==-2){
 					SetMotor(leftMotor, speed*.8);
@@ -308,8 +332,8 @@ void forward(double speed){
 					SetMotor(rightMotor, speed*.8);
 				}		
 				else if (curvetotal==4){
-					SetMotor(leftMotor, speed*.9);
-					SetMotor(rightMotor, speed*.8);
+					SetMotor(leftMotor, speed);
+					SetMotor(rightMotor, speed*.6);
 				}
 				else {
 					SetMotor(leftMotor, 0);
@@ -320,31 +344,69 @@ void forward(double speed){
 	SetMotor(rightMotor, 0);
 }
 
-void turn(int direction){																	//turn 90 degrees in place
+void turn(int direction){
+
+	int i;
+	int curve[8];	
+	float line[8];
+	int curvetotal;
+	int numLineSensor = 0;
+
+
+	//turn 90 degrees in place
 	if (direction == RIGHT) {
-		SetMotor(leftMotor,  1);
-		SetMotor(rightMotor,-1);
-		Wait(.40);
+		SetMotor(leftMotor,  .1);
+		SetMotor(rightMotor,-.1);
+		Wait(20);
+		while(numLineSensor <= 6){
+			LineSensorReadArray(gls, line); 
+      Printf("Line Sensor: [");
+        for (i = 0; i < 8; i++) {
+					if(line[i]>.8f){
+						curve[i] =1;
+						numLineSensor++;
+					}
+					else{
+						curve[i] =0;
+					}
+					if (((curve[i])==1)&&(abs(i-3)>curvetotal)){
+						curvetotal = (i-3);
+					}
+        }
+		}
 		SetMotor(leftMotor,  0);
 		SetMotor(rightMotor, 0);
 		//update orientation
 		if(orientation==WEST){
 			orientation = NORTH;}
 		else{
-			orientation += 1;}
-	
+			orientation += 1;}	
 	}
 	if (direction == LEFT) {
-																													//update orientation
-			if(orientation==NORTH){orientation = WEST;}
-			else 									{orientation += -1;}		
-			SetPin(PIN_F1,true);																											//perform turn
-			SetMotor(leftMotor,-1);
-			SetMotor(rightMotor,1);
-			Wait(.40);
-			SetMotor(leftMotor,  0);
-			SetMotor(rightMotor, 0);
-			SetPin(PIN_F1,false);	
+		SetMotor(leftMotor, -.2);
+		SetMotor(rightMotor,.2);
+		Wait(.20);
+		while(numLineSensor <= 6){
+			LineSensorReadArray(gls, line); 
+      Printf("Line Sensor: [");
+        for (i = 0; i < 8; i++) {
+					if(line[i]>.8f){
+						curve[i] =1;
+						numLineSensor++;
+					}
+					else{
+						curve[i] =0;
+					}
+					if (((curve[i])==1)&&(abs(i-3)>curvetotal)){
+						curvetotal = (i-3);
+					}
+        }
+		}
+		SetMotor(leftMotor,  0);
+		SetMotor(rightMotor, 0);
+		//update orientation
+		if(orientation==NORTH){orientation = WEST;}
+		else 									{orientation += -1;}		
 	}
 }
 
