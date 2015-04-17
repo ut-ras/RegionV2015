@@ -10,6 +10,7 @@
 .\main.o: ..\RasLib/inc/i2c.h
 .\main.o: ..\RasLib/inc/servo.h
 .\main.o: ..\RasLib/inc/pwm.h
+.\main.o: ..\RasLib/inc/encoder.h
 .\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdbool.h
 .\main.o: C:\Keil\ARM\ARMCC\bin\..\include\stdlib.h
 .\main.o: Main.h
