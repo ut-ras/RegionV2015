@@ -206,6 +206,7 @@ void init(){
 	InitializeGPIO();
 	initGPIOLineSensor();
 	InitializeSystemTime();
+	InitializeUART(115200);
 	InitEncoders();
 	orientation = NORTH;
 	
@@ -280,7 +281,23 @@ void explore(){
 		else if (!rightWall){
 			turn(RIGHT);
 			forward(speed);
-		}																												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
+		}
+																												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
+		//Sending to beaglebone
+		char locChar[4];
+		if (locCurrent < 10) {
+			locChar[0] = '0';
+			locChar[1] = (locCurrent) + 0x30;
+			locChar[2] = '\n';
+			locChar[3] = 0;
+		}
+		else {
+			locChar[0] = (locCurrent / 10 % 10) + 0x30;
+			locChar[1] = (locCurrent % 10) + 0x30;
+			locChar[2] = '\n';
+			locChar[3] = 0;
+		}
+		Puts(locChar, 4);
 	}
 }
 

@@ -1,0 +1,69 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\Ahmed\Documents\GitHub\RegionV2015\Movement\Region V.uvproj
+Project File Date:  04/17/2015
+
+<h2>Output:</h2>
+Rebuild target 'RASDemo'
+compiling Startup.c...
+compiling Main.c...
+Main.c(199): warning:  #111-D: statement is unreachable
+Main.c(176): warning:  #177-D: variable "speed" was declared but never referenced
+Main.c(209): error:  #165: too few arguments in function call
+Main.c(290): error:  #20: identifier "cell" is undefined
+Main.c(292): error:  #65: expected a ";"
+Main.c(235): warning:  #177-D: variable "stop" was declared but never referenced
+Main.c(307): warning:  #550-D: variable "curve" was set but never used
+Main.c(442): warning:  #177-D: variable "i" was declared but never referenced
+Main.c(443): warning:  #177-D: variable "curve" was declared but never referenced
+Main.c(444): warning:  #177-D: variable "line" was declared but never referenced
+Main.c(445): warning:  #177-D: variable "curvetotal" was declared but never referenced
+Main.c(446): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+Target not created
+Rebuild target 'RASDemo'
+compiling Startup.c...
+compiling Main.c...
+Main.c(199): warning:  #111-D: statement is unreachable
+Main.c(176): warning:  #177-D: variable "speed" was declared but never referenced
+Main.c(209): error:  #165: too few arguments in function call
+Main.c(292): error:  #65: expected a ";"
+Main.c(235): warning:  #177-D: variable "stop" was declared but never referenced
+Main.c(307): warning:  #550-D: variable "curve" was set but never used
+Main.c(442): warning:  #177-D: variable "i" was declared but never referenced
+Main.c(443): warning:  #177-D: variable "curve" was declared but never referenced
+Main.c(444): warning:  #177-D: variable "line" was declared but never referenced
+Main.c(445): warning:  #177-D: variable "curvetotal" was declared but never referenced
+Main.c(446): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+Target not created
+Rebuild target 'RASDemo'
+compiling Startup.c...
+compiling Main.c...
+Main.c(199): warning:  #111-D: statement is unreachable
+Main.c(176): warning:  #177-D: variable "speed" was declared but never referenced
+Main.c(292): error:  #65: expected a ";"
+Main.c(235): warning:  #177-D: variable "stop" was declared but never referenced
+Main.c(307): warning:  #550-D: variable "curve" was set but never used
+Main.c(442): warning:  #177-D: variable "i" was declared but never referenced
+Main.c(443): warning:  #177-D: variable "curve" was declared but never referenced
+Main.c(444): warning:  #177-D: variable "line" was declared but never referenced
+Main.c(445): warning:  #177-D: variable "curvetotal" was declared but never referenced
+Main.c(446): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+Target not created
+Rebuild target 'RASDemo'
+compiling Startup.c...
+compiling Main.c...
+Main.c(199): warning:  #111-D: statement is unreachable
+Main.c(176): warning:  #177-D: variable "speed" was declared but never referenced
+Main.c(235): warning:  #177-D: variable "stop" was declared but never referenced
+Main.c(307): warning:  #550-D: variable "curve" was set but never used
+Main.c(442): warning:  #177-D: variable "i" was declared but never referenced
+Main.c(443): warning:  #177-D: variable "curve" was declared but never referenced
+Main.c(444): warning:  #177-D: variable "line" was declared but never referenced
+Main.c(445): warning:  #177-D: variable "curvetotal" was declared but never referenced
+Main.c(446): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+linking...
+Program Size: Code=26516 RO-data=2344 RW-data=868 ZI-data=13452  
+"RASDemo.axf" - 0 Error(s), 9 Warning(s).
