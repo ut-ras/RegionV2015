@@ -280,8 +280,39 @@ void setOrientation(int direction);
 int main () {
 	init();		
 	
+	//LINKED LIST TESTING
+	int i = 0;
+	struct linkedList *ptr = NULL;
+	print_list();
+	for (i = 5; i < 10; i++) {
+		addToList(i, true);
+	}
+	deleteFromList(5);
+	deleteFromList(3);
+	print_list();
+	//TESTING END
+	
 	while (GetPin(PIN_F0)){	};
-	double speed = .2;	
+	double speed = .15;
+	
+	ResetEncoder(rightEncoder);
+	ResetEncoder(leftEncoder);
+	
+	Wait(1);
+	SetMotor(leftMotor, .2);
+	SetMotor(rightMotor, .2);	
+	Wait(1);
+	SetMotor(leftMotor, 0);
+	SetMotor(rightMotor, 0);	
+	
+	//forward(speed);
+	
+	GetEncoder(rightEncoder);
+	GetEncoder(leftEncoder);
+	
+	
+	Printf("Encoder values:  %10d  %10d  \r \n", GetEncoder(leftEncoder),GetEncoder(rightEncoder));
+	
 	
 	forward(speed);
 	//explore();
@@ -297,6 +328,7 @@ void init(){
 	InitializeGPIO();
 	initGPIOLineSensor();
 	InitializeSystemTime();
+	InitializeUART(115200);
 	InitEncoders();
 	orientation = NORTH;
 	
@@ -361,7 +393,23 @@ void explore(){
 		else if (!rightWall){
 			turn(RIGHT);
 			forward(speed);
-		}																												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
+		}
+																												//Tell Beaglebone locCurrent (put in brackets so beaglebone reads as file)
+		//Sending to beaglebone
+		char locChar[4];
+		if (locCurrent < 10) {
+			locChar[0] = '0';
+			locChar[1] = (locCurrent) + 0x30;
+			locChar[2] = '\n';
+			locChar[3] = 0;
+		}
+		else {
+			locChar[0] = (locCurrent / 10 % 10) + 0x30;
+			locChar[1] = (locCurrent % 10) + 0x30;
+			locChar[2] = '\n';
+			locChar[3] = 0;
+		}
+		Puts(locChar, 4);
 	}
 }
 
