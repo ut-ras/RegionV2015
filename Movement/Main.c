@@ -163,113 +163,50 @@ struct linkedList{
 };
 
 //struct linkedList *criticalPath;
-struct linkedList *head = NULL;
-struct linkedList *curr = NULL;
+int criticalPath[50];
+int critical_num = 0;
 
-struct linkedList* createList(int val){
-	Printf("\n creating list with headnode as [%d]\n", val);
-	struct linkedList *ptr = (struct linkedList*)malloc(sizeof(struct linkedList));
-	if (NULL == ptr) {
-		Printf("\n Node creation failed \n");
-		return NULL;
-	}
-	Printf("%d\n", val);
-	ptr->value = val;
-	if (ptr->value == 5)
-		Printf("hi");
-	Printf("%d", ptr->value);
-	ptr->next = NULL;
-	
-	head = curr = ptr;
-	return ptr;
+int find_index(int value)
+{
+   int i;
+   for (i=0; i < critical_num; i++)
+   {
+	 if (criticalPath[i] == value)
+	 {
+	    return(i);  /* it was found */
+	 }
+   }
+   return(-1);  /* if it was not found */
 }
 
-struct linkedList* addToList(int val, bool add_to_end) {
-	if(NULL == head){
-		return (createList(val));
-	}
-	if (add_to_end)
-		Printf("\n Adding node to end of list with value [%d]\n", val);
-	else
-		Printf("\n Adding node to beginning of list with value [%d]\n", val);
-	struct linkedList *ptr = (struct linkedList*)malloc(sizeof(struct linkedList));
-	if (NULL == ptr) {
-		Printf("\n Node creation failed \n");
-		return NULL;
-	}
-	ptr->value = val;
-	ptr->next = NULL;
-	Printf("%d", ptr->value);
-	if (add_to_end) {
-		curr->next = ptr;
-		curr = ptr;
-	}
-	else {
-		ptr->next = head;
-		head = ptr;
-	}
-	return ptr;
+void print_array()
+{
+   int i;
+   for(i=0; i < critical_num; i++)
+   {
+	 Printf("%d ", criticalPath[i]);
+   }
+   Printf("\n");
 }
 
-struct linkedList* searchInList(int val, struct linkedList **prev) {
-	struct linkedList *ptr = head;
-	struct linkedList *tmp = NULL;
-	bool found = false;
-	Printf("\n Searching the list for value [%d] \n", val);
-	while (ptr != NULL) {
-		Printf("%d \n", ptr->value);
-		if (ptr->value == val) {
-			found = true;
-			break;
-		}
-		else {
-			tmp = ptr;
-			ptr = ptr->next;
-		}
+void deleteAfter(int value)
+{
+	int val = find_index(value);
+	for (int i = critical_num - 1; i >= val; i--) {
+		criticalPath[i] = 0;
+		critical_num--;
 	}
-	if (true == found) {
-		if (prev)
-			*prev = tmp;
-		return ptr;
-	}
-	else
-		return NULL;
 }
 
-int deleteFromList(int val) {
-	struct linkedList *prev = NULL;
-	struct linkedList *del = NULL;
-	Printf("\n Deleting value [%d] from list\n", val);
-	del = searchInList(val, &prev);
-	if (del == NULL) {
-		return -1;
-	}
-	else {
-		if (prev != NULL)
-			prev->next = del->next;
-		if (del == curr) {
-			curr = prev;
-		}
-		else if (del == head)
-		{
-			head = del->next;
-		}
-	}
-	free(del);
-	del = NULL;
-	return 0;
+void delete(int value) {
+	int val = find_index(value);
+	criticalPath[val] = 0;
+	critical_num--;
 }
 
-void print_list(void) {
-	struct linkedList *ptr = head;
-	Printf("\n ---Print list Start --- \n");
-	while (ptr != NULL)
-	{
-		Printf("\n [%d] \n", ptr->value);
-		ptr = ptr->next;
-	}
-	Printf("\n ---Print list End--- \n");
-	return;
+void add(int value) {
+	criticalPath[critical_num] = value;
+	critical_num++;
 }
 
 void init(void);
@@ -281,40 +218,13 @@ int main () {
 	init();		
 	
 	//LINKED LIST TESTING
-	int i = 0;
-	struct linkedList *ptr = NULL;
-	print_list();
-	for (i = 5; i < 10; i++) {
-		addToList(i, true);
-	}
-	deleteFromList(5);
-	deleteFromList(3);
-	print_list();
 	//TESTING END
 	
 	while (GetPin(PIN_F0)){	};
-	double speed = .15;
-	
-	ResetEncoder(rightEncoder);
-	ResetEncoder(leftEncoder);
-	
-	Wait(1);
-	SetMotor(leftMotor, .2);
-	SetMotor(rightMotor, .2);	
-	Wait(1);
-	SetMotor(leftMotor, 0);
-	SetMotor(rightMotor, 0);	
-	
-	//forward(speed);
-	
-	GetEncoder(rightEncoder);
-	GetEncoder(leftEncoder);
-	
-	
-	Printf("Encoder values:  %10d  %10d  \r \n", GetEncoder(leftEncoder),GetEncoder(rightEncoder));
-	
+	double speed = .2;
 	
 	forward(speed);
+
 	//explore();
 	
 	while(1) {};

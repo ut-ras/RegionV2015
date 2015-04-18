@@ -10,30 +10,40 @@ Project File Date:  04/18/2015
 Rebuild target 'RASDemo'
 compiling Startup.c...
 compiling Main.c...
-Main.c(321): warning:  #111-D: statement is unreachable
+Main.c(231): warning:  #111-D: statement is unreachable
         sprint();
-Main.c(285): warning:  #177-D: variable "ptr" was declared but never referenced
-        struct linkedList *ptr = NULL;
-Main.c(445): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+Main.c(355): warning:  #1035-D: single-precision operand implicitly converted to double-precision
                                         if(line[i]>.7){numLineSensor++;}
-Main.c(425): warning:  #177-D: variable "lost" was declared but never referenced
+Main.c(335): warning:  #177-D: variable "lost" was declared but never referenced
         int lost = 1;
-Main.c(426): warning:  #177-D: variable "lostDir" was declared but never referenced
+Main.c(336): warning:  #177-D: variable "lostDir" was declared but never referenced
         int lostDir = 0;
-Main.c(472): warning:  #177-D: variable "i" was declared but never referenced
+Main.c(382): warning:  #177-D: variable "i" was declared but never referenced
         int i;
-Main.c(473): warning:  #177-D: variable "curve" was declared but never referenced
+Main.c(383): warning:  #177-D: variable "curve" was declared but never referenced
         int curve[8];   
-Main.c(474): warning:  #177-D: variable "line" was declared but never referenced
+Main.c(384): warning:  #177-D: variable "line" was declared but never referenced
         float line[8];
-Main.c(475): warning:  #177-D: variable "curvetotal" was declared but never referenced
+Main.c(385): warning:  #177-D: variable "curvetotal" was declared but never referenced
         int curvetotal;
-Main.c(476): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+Main.c(386): warning:  #177-D: variable "numLineSensor" was declared but never referenced
         int numLineSensor = 0;
-Main.c: 10 warnings, 0 errors
+Main.c: 9 warnings, 0 errors
 linking...
-Program Size: Code=27660 RO-data=2440 RW-data=872 ZI-data=13448  
-".\RASDemo.axf" - 0 Error(s), 10 Warning(s).
-</pre>
-</body>
-</html>
+Program Size: Code=26332 RO-data=2440 RW-data=868 ZI-data=13652  
+".\RASDemo.axf" - 0 Error(s), 9 Warning(s).
+t never referenced
+        float line[8];
+Main.c(412): warning:  #177-D: variable "curvetotal" was declared but never referenced
+        int curvetotal;
+Main.c(413): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+        int numLineSensor = 0;
+Main.c: 13 warnings, 0 errors
+linking...
+.\RASDemo.axf: Error: L6218E: Undefined symbol addToList (referred from main.o).
+.\RASDemo.axf: Error: L6218E: Undefined symbol deleteFromList (referred from main.o).
+.\RASDemo.axf: Error: L6218E: Undefined symbol print_list (referred from main.o).
+Not enough information to list image symbols.
+Finished: 1 information, 0 warning and 3 error messages.
+".\RASDemo.axf" - 3 Error(s), 13 Warning(s).
+Target not created
