@@ -162,7 +162,115 @@ struct linkedList{
 	struct linkedList *next;
 };
 
-struct linkedList *criticalPath;
+//struct linkedList *criticalPath;
+struct linkedList *head = NULL;
+struct linkedList *curr = NULL;
+
+struct linkedList* createList(int val){
+	Printf("\n creating list with headnode as [%d]\n", val);
+	struct linkedList *ptr = (struct linkedList*)malloc(sizeof(struct linkedList));
+	if (NULL == ptr) {
+		Printf("\n Node creation failed \n");
+		return NULL;
+	}
+	Printf("%d\n", val);
+	ptr->value = val;
+	if (ptr->value == 5)
+		Printf("hi");
+	Printf("%d", ptr->value);
+	ptr->next = NULL;
+	
+	head = curr = ptr;
+	return ptr;
+}
+
+struct linkedList* addToList(int val, bool add_to_end) {
+	if(NULL == head){
+		return (createList(val));
+	}
+	if (add_to_end)
+		Printf("\n Adding node to end of list with value [%d]\n", val);
+	else
+		Printf("\n Adding node to beginning of list with value [%d]\n", val);
+	struct linkedList *ptr = (struct linkedList*)malloc(sizeof(struct linkedList));
+	if (NULL == ptr) {
+		Printf("\n Node creation failed \n");
+		return NULL;
+	}
+	ptr->value = val;
+	ptr->next = NULL;
+	Printf("%d", ptr->value);
+	if (add_to_end) {
+		curr->next = ptr;
+		curr = ptr;
+	}
+	else {
+		ptr->next = head;
+		head = ptr;
+	}
+	return ptr;
+}
+
+struct linkedList* searchInList(int val, struct linkedList **prev) {
+	struct linkedList *ptr = head;
+	struct linkedList *tmp = NULL;
+	bool found = false;
+	Printf("\n Searching the list for value [%d] \n", val);
+	while (ptr != NULL) {
+		Printf("%d \n", ptr->value);
+		if (ptr->value == val) {
+			found = true;
+			break;
+		}
+		else {
+			tmp = ptr;
+			ptr = ptr->next;
+		}
+	}
+	if (true == found) {
+		if (prev)
+			*prev = tmp;
+		return ptr;
+	}
+	else
+		return NULL;
+}
+
+int deleteFromList(int val) {
+	struct linkedList *prev = NULL;
+	struct linkedList *del = NULL;
+	Printf("\n Deleting value [%d] from list\n", val);
+	del = searchInList(val, &prev);
+	if (del == NULL) {
+		return -1;
+	}
+	else {
+		if (prev != NULL)
+			prev->next = del->next;
+		if (del == curr) {
+			curr = prev;
+		}
+		else if (del == head)
+		{
+			head = del->next;
+		}
+	}
+	free(del);
+	del = NULL;
+	return 0;
+}
+
+void print_list(void) {
+	struct linkedList *ptr = head;
+	Printf("\n ---Print list Start --- \n");
+	while (ptr != NULL)
+	{
+		Printf("\n [%d] \n", ptr->value);
+		ptr = ptr->next;
+	}
+	Printf("\n ---Print list End--- \n");
+	return;
+}
 
 void init(void);
 void explore(void);
@@ -172,6 +280,18 @@ void setOrientation(int direction);
 int main () {
 	init();		
 	
+	//LINKED LIST TESTING
+	int i = 0;
+	struct linkedList *ptr = NULL;
+	print_list();
+	for (i = 5; i < 10; i++) {
+		addToList(i, true);
+	}
+	deleteFromList(5);
+	deleteFromList(3);
+	print_list();
+	//TESTING END
+	
 	while (GetPin(PIN_F0)){	};
 	double speed = .15;
 	
@@ -179,8 +299,8 @@ int main () {
 	ResetEncoder(leftEncoder);
 	
 	Wait(1);
-	SetMotor(leftMotor, 1);
-	SetMotor(rightMotor, 1);	
+	SetMotor(leftMotor, .2);
+	SetMotor(rightMotor, .2);	
 	Wait(1);
 	SetMotor(leftMotor, 0);
 	SetMotor(rightMotor, 0);	
@@ -215,7 +335,7 @@ void init(){
 	locCurrent = 48;
 	locEnd = 9;
 	
-	criticalPath->value = locCurrent;												//set start of crit path
+	//criticalPath->value = locCurrent;												//set start of crit path
 	
 	for(x = 0; x < 49; x++)
 		pastCells[x] = 0;
@@ -529,12 +649,13 @@ void setOrientation(int direction){
 
 void sprint(void) {
 	double speed = 1;
+	/*
 	for(;criticalPath->next != NULL || criticalPath->value != locEnd; criticalPath = criticalPath->next){
 		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward(speed);}
 		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward(speed);}
 		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward(speed);}
 		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward(speed);}
 	}
-																													//FINISH RED LED ON
+																													//FINISH RED LED ON*/
 }
 

@@ -12,7 +12,7 @@
 ### ADS-LD Output File: 'RASDemo.axf'
 ### ADS-LD Command File: 'RASDemo.lnp'
 ### Checking for dirty Components...
-### Creating CmdFile 'RASDemo.lnp', Handle=0x00000284
+### Creating CmdFile 'RASDemo.lnp', Handle=0x000001CC
 ### Writing '.lnp' file
 ### ADS-LD Command file 'RASDemo.lnp' is ready.
 ### ADS-LD: About to start ADS-LD Thread.
