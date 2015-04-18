@@ -10,40 +10,49 @@ Project File Date:  04/18/2015
 Rebuild target 'RASDemo'
 compiling Startup.c...
 compiling Main.c...
-Main.c(231): warning:  #111-D: statement is unreachable
-        sprint();
-Main.c(355): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+Main.c(226): warning:  #177-D: variable "speed" was declared but never referenced
+        double speed = .3;      
+Main.c(371): warning:  #1035-D: single-precision operand implicitly converted to double-precision
                                         if(line[i]>.7){numLineSensor++;}
-Main.c(335): warning:  #177-D: variable "lost" was declared but never referenced
-        int lost = 1;
-Main.c(336): warning:  #177-D: variable "lostDir" was declared but never referenced
+Main.c(352): warning:  #177-D: variable "lostDir" was declared but never referenced
         int lostDir = 0;
-Main.c(382): warning:  #177-D: variable "i" was declared but never referenced
+Main.c(418): warning:  #177-D: variable "i" was declared but never referenced
         int i;
-Main.c(383): warning:  #177-D: variable "curve" was declared but never referenced
+Main.c(419): warning:  #177-D: variable "curve" was declared but never referenced
         int curve[8];   
-Main.c(384): warning:  #177-D: variable "line" was declared but never referenced
+Main.c(420): warning:  #177-D: variable "line" was declared but never referenced
         float line[8];
-Main.c(385): warning:  #177-D: variable "curvetotal" was declared but never referenced
+Main.c(421): warning:  #177-D: variable "curvetotal" was declared but never referenced
         int curvetotal;
-Main.c(386): warning:  #177-D: variable "numLineSensor" was declared but never referenced
+Main.c(422): warning:  #177-D: variable "numLineSensor" was declared but never referenced
         int numLineSensor = 0;
-Main.c: 9 warnings, 0 errors
+Main.c: 8 warnings, 0 errors
 linking...
-Program Size: Code=26332 RO-data=2440 RW-data=868 ZI-data=13652  
-".\RASDemo.axf" - 0 Error(s), 9 Warning(s).
-t never referenced
-        float line[8];
-Main.c(412): warning:  #177-D: variable "curvetotal" was declared but never referenced
-        int curvetotal;
-Main.c(413): warning:  #177-D: variable "numLineSensor" was declared but never referenced
-        int numLineSensor = 0;
-Main.c: 13 warnings, 0 errors
-linking...
-.\RASDemo.axf: Error: L6218E: Undefined symbol addToList (referred from main.o).
-.\RASDemo.axf: Error: L6218E: Undefined symbol deleteFromList (referred from main.o).
-.\RASDemo.axf: Error: L6218E: Undefined symbol print_list (referred from main.o).
-Not enough information to list image symbols.
-Finished: 1 information, 0 warning and 3 error messages.
-".\RASDemo.axf" - 3 Error(s), 13 Warning(s).
-Target not created
+Program Size: Code=26788 RO-data=2440 RW-data=868 ZI-data=13652  
+".\RASDemo.axf" - 0 Error(s), 8 Warning(s).
+Load "C:\\Users\\Soccerferrari\\Desktop\\Homework\\2014-15\\Spring\\Rasware SVN\\RegionV2015\\Movement\\RASDemo.axf" 
+Connecting: Mode=JTAG, Speed=1000000Hz
+Erase Done.
+Programming Done.
+Verify OK.
+</pre>
+</body>
+</html>
+00Hz
+Erase Done.
+Programming Done.
+Verify OK.
+ash Download failed  -  Target DLL has been cancelled
+Load "C:\\Users\\Soccerferrari\\Desktop\\Homework\\2014-15\\Spring\\Rasware SVN\\RegionV2015\\Movement\\RASDemo.axf" 
+Connecting: Mode=JTAG, Speed=1000000Hz
+Erase Done.
+Programming Done.
+Verify OK.
+vement\\RASDemo.axf" 
+Connecting: Mode=JTAG, Speed=1000000Hz
+Connection failed!, error code=&d
+Error: Flash Download failed  -  Target DLL has been cancelled
+Load "C:\\Users\\Soccerferrari\\Desktop\\Homework\\2014-15\\Spring\\Rasware SVN\\RegionV2015\\Movement\\RASDemo.axf" 
+Connecting: Mode=JTAG, Speed=1000000Hz
+Connection failed!, error code=&d
+Error: Flash Download failed  -  Target DLL has been cancelled

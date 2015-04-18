@@ -27,6 +27,8 @@ bool endFound;
 int* ptr;
 int pastCells[50];
 int nextcell;
+tBoolean ledOn = true;
+tBoolean ledOff = false;
 
 tADC *adc[2];
 //tMotor *servomotor[2];
@@ -204,6 +206,11 @@ void delete(int value) {
 	critical_num--;
 }
 
+void deleteIndex(int index) {
+	criticalPath[index] = 0;
+	critical_num--;
+}
+
 void add(int value) {
 	criticalPath[critical_num] = value;
 	critical_num++;
@@ -216,23 +223,25 @@ void setOrientation(int direction);
 
 int main () {
 	init();		
-	
+	double speed = .3;	
 	//LINKED LIST TESTING
 	//TESTING END
-	
 	while (GetPin(PIN_F0)){	};
-	double speed = .2;
-	
-	forward(speed);
+	SetPin(PIN_F3, ledOff);
+	explore();
+	//turn(RIGHT);
+	//forward(speed);
 
 	//explore();
 	
-	while(1) {};
+	while (GetPin(PIN_F0)){	};
 	sprint();
+	while(1){};
 }
 
 void init(){
 	int x = 0;
+	SetPin(PIN_F3, ledOn);
 	initIRSensor();
 	initMotor();	
 	InitializeGPIO();
@@ -244,8 +253,8 @@ void init(){
 	
 	//set start and end locations
 	endFound = false;
-	locCurrent = 48;
-	locEnd = 9;
+	locCurrent = 48;									//7x7 Starts in 49, rest is 48
+	locEnd = 1;												//6x6 and 7x7 ends in 1, rest is 9
 	
 	//criticalPath->value = locCurrent;												//set start of crit path
 	
@@ -263,8 +272,8 @@ void releaseRest(struct linkedList *list){
 }
 
 void explore(){
-	double speed = .35;
-	while(1){
+	double speed = .3;
+	while(locCurrent!=locEnd){
 		
 		rightSensor = ADCRead(adc[1])*1000;
 		frontSensor = ADCRead(adc[0])*1000;
@@ -280,25 +289,30 @@ void explore(){
 		}
 		else if	(rightWall&&!frontWall){
 			forward(speed);	
-			/*
-																						//Forward one cell
-			
-			
-				if (!endFound) {	
+			if (!endFound) {	
 					if(pastCells[locCurrent] != 1){									//Check for repeat cell in crit path
+						/*
 						struct linkedList *link;											//
 						struct linkedList *list = criticalPath;				//Point to path list
 						link->value = locCurrent;											//Add	value to a new struct
+						*/
+						add(locCurrent);
+						/*
 						for(;list->next != NULL; list = list->next);	//Get to end of list
 						list->next = link;														//Add new struct to the list
+						*/
 					}else{
+						/*
 						struct linkedList *list = criticalPath;
 						for(;list->value == locCurrent || list->next != NULL; list = list->next);
 						releaseRest(list->next);
 						list->next = NULL;
+						*/
+						deleteAfter(locCurrent);
+						
 					}						
 					pastCells[locCurrent] = 1;											//Set cell to visited
-				}	*/														
+				}															
 			}		
 		else if (!rightWall){
 			turn(RIGHT);
@@ -320,7 +334,9 @@ void explore(){
 			locChar[3] = 0;
 		}
 		Puts(locChar, 4);
+		
 	}
+	SetPin(PIN_F1, ledOn);
 }
 
 void forward(double speed){ 
@@ -345,7 +361,7 @@ void forward(double speed){
 		
 	SetMotor(leftMotor,  .2);
 	SetMotor(rightMotor, .2);		
-	Wait(.2);
+	Wait(.3);
 	while( numLineSensor <=5 ){	
 			numLineSensor = 0;
 			rightSpeed = 0;
@@ -363,18 +379,38 @@ void forward(double speed){
 			leftSpeed = leftSpeed / 2;
 			Printf("%.2f ", leftSpeed);
 			Printf("%.2f ", rightSpeed);
-			Printf("\b]        \r");
+			Printf("\b]        \r");			
 				
 			if (numLineSensor>=4){
 				leftSpeed=0;
 				rightSpeed=0;
 			}
+			if (numLineSensor == 0){
+				if(lost == 0){
+				leftSpeed =.2;
+				rightSpeed =.5;
+				}
+				else if(lost == 1){
+				leftSpeed =.5;
+				rightSpeed =.2;				
+				}
+			}
 			if ((leftSpeed*speed) >= .3){leftSpeed = .3/speed;}
 			if ((rightSpeed*speed) >= .3){rightSpeed = .3/speed;}
 			
-			SetMotor(leftMotor,  (leftSpeed*speed));
-			SetMotor(rightMotor, (rightSpeed*speed));		
+			SetMotor(leftMotor,  (leftSpeed*speed*.75));
+			SetMotor(rightMotor, (rightSpeed*speed));	
+			
+			if (rightSpeed > leftSpeed){
+			lost = 1;
+			}
+			else {
+			lost = 0;
+			}			
 	}
+	SetMotor(leftMotor,  0);
+	SetMotor(rightMotor, 0);
+	Wait(.5);
 }
 
 void turn(int direction){
@@ -391,7 +427,7 @@ void turn(int direction){
 		
 		SetMotor(leftMotor,  .2);
 		SetMotor(rightMotor,-.2);
-		Wait(.9);
+		Wait(.5);
 		
 		/*
 		while(numLineSensor <= 6){
@@ -423,7 +459,7 @@ void turn(int direction){
 	if (direction == LEFT) {
 		SetMotor(leftMotor, -.2);
 		SetMotor(rightMotor,.2);
-		Wait(.9);
+		Wait(.5);
 		
 		/*
 		while(numLineSensor <= 6){
@@ -467,14 +503,27 @@ void setOrientation(int direction){
 	}
 }
 
-void sprint(void) {
-	/*double speed = 1;
+void sprint(void) {	
+	double speed = 1;
+	/*
 	for(;criticalPath->next != NULL || criticalPath->value != locEnd; criticalPath = criticalPath->next){
 		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward(speed);}
 		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward(speed);}
 		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward(speed);}
 		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward(speed);}
 	}
+	*/
+	int i = 0;
+	while (criticalPath[i] != locEnd) {
+		if (criticalPath[i] == locCurrent + 1 ) {setOrientation(EAST); forward(speed);}
+		if (criticalPath[i] == locCurrent - 1 ) {setOrientation(WEST); forward(speed);}
+		if (criticalPath[i] == locCurrent + 7 ) {setOrientation(SOUTH); forward(speed);}
+		if (criticalPath[i] == locCurrent - 7 ) {setOrientation(NORTH); forward(speed);}
+		deleteIndex(i);
+		i++;
+	}
+	SetPin(PIN_F1, ledOn);
+	//FINISH RED LED ON*/
 																													//FINISH RED LED ON*/
 }
 
