@@ -162,7 +162,115 @@ struct linkedList{
 	struct linkedList *next;
 };
 
-struct linkedList *criticalPath;
+//struct linkedList *criticalPath;
+struct linkedList *head = NULL;
+struct linkedList *curr = NULL;
+
+struct linkedList* createList(int val){
+	Printf("\n creating list with headnode as [%d]\n", val);
+	struct linkedList *ptr = (struct linkedList*)malloc(sizeof(struct linkedList));
+	if (NULL == ptr) {
+		Printf("\n Node creation failed \n");
+		return NULL;
+	}
+	Printf("%d\n", val);
+	ptr->value = val;
+	if (ptr->value == 5)
+		Printf("hi");
+	Printf("%d", ptr->value);
+	ptr->next = NULL;
+	
+	head = curr = ptr;
+	return ptr;
+}
+
+struct linkedList* addToList(int val, bool add_to_end) {
+	if(NULL == head){
+		return (createList(val));
+	}
+	if (add_to_end)
+		Printf("\n Adding node to end of list with value [%d]\n", val);
+	else
+		Printf("\n Adding node to beginning of list with value [%d]\n", val);
+	struct linkedList *ptr = (struct linkedList*)malloc(sizeof(struct linkedList));
+	if (NULL == ptr) {
+		Printf("\n Node creation failed \n");
+		return NULL;
+	}
+	ptr->value = val;
+	ptr->next = NULL;
+	Printf("%d", ptr->value);
+	if (add_to_end) {
+		curr->next = ptr;
+		curr = ptr;
+	}
+	else {
+		ptr->next = head;
+		head = ptr;
+	}
+	return ptr;
+}
+
+struct linkedList* searchInList(int val, struct linkedList **prev) {
+	struct linkedList *ptr = head;
+	struct linkedList *tmp = NULL;
+	bool found = false;
+	Printf("\n Searching the list for value [%d] \n", val);
+	while (ptr != NULL) {
+		Printf("%d \n", ptr->value);
+		if (ptr->value == val) {
+			found = true;
+			break;
+		}
+		else {
+			tmp = ptr;
+			ptr = ptr->next;
+		}
+	}
+	if (true == found) {
+		if (prev)
+			*prev = tmp;
+		return ptr;
+	}
+	else
+		return NULL;
+}
+
+int deleteFromList(int val) {
+	struct linkedList *prev = NULL;
+	struct linkedList *del = NULL;
+	Printf("\n Deleting value [%d] from list\n", val);
+	del = searchInList(val, &prev);
+	if (del == NULL) {
+		return -1;
+	}
+	else {
+		if (prev != NULL)
+			prev->next = del->next;
+		if (del == curr) {
+			curr = prev;
+		}
+		else if (del == head)
+		{
+			head = del->next;
+		}
+	}
+	free(del);
+	del = NULL;
+	return 0;
+}
+
+void print_list(void) {
+	struct linkedList *ptr = head;
+	Printf("\n ---Print list Start --- \n");
+	while (ptr != NULL)
+	{
+		Printf("\n [%d] \n", ptr->value);
+		ptr = ptr->next;
+	}
+	Printf("\n ---Print list End--- \n");
+	return;
+}
 
 void init(void);
 void explore(void);
@@ -173,28 +281,11 @@ int main () {
 	init();		
 	
 	while (GetPin(PIN_F0)){	};
-	double speed = .15;
+	double speed = .2;	
 	
-	ResetEncoder(rightEncoder);
-	ResetEncoder(leftEncoder);
-	
-	Wait(1);
-	SetMotor(leftMotor, 1);
-	SetMotor(rightMotor, 1);	
-	Wait(1);
-	SetMotor(leftMotor, 0);
-	SetMotor(rightMotor, 0);	
-	
-	//forward(speed);
-	
-	GetEncoder(rightEncoder);
-	GetEncoder(leftEncoder);
-	
-	
-	Printf("Encoder values:  %10d  %10d  \r \n", GetEncoder(leftEncoder),GetEncoder(rightEncoder));
-	
-	
+	forward(speed);
 	//explore();
+	
 	while(1) {};
 	sprint();
 }
@@ -214,7 +305,7 @@ void init(){
 	locCurrent = 48;
 	locEnd = 9;
 	
-	criticalPath->value = locCurrent;												//set start of crit path
+	//criticalPath->value = locCurrent;												//set start of crit path
 	
 	for(x = 0; x < 49; x++)
 		pastCells[x] = 0;
@@ -230,18 +321,8 @@ void releaseRest(struct linkedList *list){
 }
 
 void explore(){
-	double speed = .2;
-	bool stop = true;
-//	int startTime;
-//	int time;
-//	bool limit = true;
-//	startTime = GetTime();
-		Wait(2);
+	double speed = .35;
 	while(1){
-
-//		if (GetPin(PIN_F0)){stop = false;};
-//		time = GetTime(); 
-//		if (time-startTime >= 180){limit = false;}
 		
 		rightSensor = ADCRead(adc[1])*1000;
 		frontSensor = ADCRead(adc[0])*1000;
@@ -287,12 +368,16 @@ void explore(){
 void forward(double speed){ 
 																					
 	int i;
-	int curve[8];	
+	float adjustedLine[8];	
 	float line[8];
-	int curvetotal;
+	float lineError[8] = {.22,.20,.19,.19,.20,.18,.17,.25};
+	float lineWeightRight[8] = {.8,.7,.65,.6,.55,.5,.45,.4};
+	float lineWeightLeft[8] = {.4,.45,.5,.55,.6,.65,.7,.8};
 	int numLineSensor = 0;
 	int lost = 1;
 	int lostDir = 0;
+	float rightSpeed;
+	float leftSpeed;
 	
 	//update cell number
 	if 			(orientation == NORTH)	{locCurrent += -7;}
@@ -300,124 +385,38 @@ void forward(double speed){
 	else if (orientation == SOUTH)	{locCurrent += 7;}
 	else if (orientation == WEST)		{locCurrent += -1;}
 		
-	
-	SetPin(PIN_F2,1);
-	SetMotor(leftMotor, .2);
-	SetMotor(rightMotor, .2);	
-	Wait(.4);
-	SetPin(PIN_F2,0);
-	while( numLineSensor <= 4 ){	
-				curvetotal = 10;
-				numLineSensor = 0;
-				lost = 1;
-				LineSensorReadArray(gls, line); 
-       // Printf("Line Sensor: [");
-        for (i = 0; i < 8; i++) {
-					if(line[i]>.8f){
-						curve[i] =1;
-						numLineSensor++;
-						lost = 0;
-						if ((abs(i-3)) <= curvetotal) {curvetotal = (i-3);}
-					}
-					else{
-						curve[i] =0;
-					}
-        }
-			//	Printf("%d ", curvetotal);
-      // Printf("\b]        \r");
-		
-				//line[0] is far left
+	SetMotor(leftMotor,  .2);
+	SetMotor(rightMotor, .2);		
+	Wait(.2);
+	while( numLineSensor <=5 ){	
+			numLineSensor = 0;
+			rightSpeed = 0;
+			leftSpeed = 0;
+			LineSensorReadArray(gls, line); 
+       for (i = 0; i < 8; i++) {
+					if(line[i]>.7){numLineSensor++;}
+					if(line[i]>1){line[i] = 1.0 ;}
+					adjustedLine[i] = line[i] - lineError[i];
+					rightSpeed += (adjustedLine[i] * lineWeightRight[i]);
+					leftSpeed += (adjustedLine[i] * lineWeightLeft[i]);						
+			}
+			
+			rightSpeed = rightSpeed / 2;
+			leftSpeed = leftSpeed / 2;
+			Printf("%.2f ", leftSpeed);
+			Printf("%.2f ", rightSpeed);
+			Printf("\b]        \r");
 				
-				if (lost == 1) {
-					curvetotal = lostDir;
-				}	
-				 
-				/*
-				
-				if (line[3] > .8f || line[4] > .8f){
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed);
-				}
-				else if (line[0] > .8f){
-					lostDir = -3;
-					SetMotor(leftMotor, speed*.3);
-					SetMotor(rightMotor, speed*.9);
-				}
-				else if (line[7] > .8f){
-					lostDir = 4;
-					SetMotor(leftMotor, speed*.9);
-					SetMotor(rightMotor, speed*.3);
-				}
-				else if (line[1] > .8f){
-					lostDir = -3;
-					SetMotor(leftMotor, speed*.7);
-					SetMotor(rightMotor, speed);
-				}
-				else if (line[6] > .8f){
-					lostDir = 4;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed*.7);
-				}
-				else if (line[2] > .8f){
-					lostDir = -3;
-					SetMotor(leftMotor, speed*.9);
-					SetMotor(rightMotor, speed);
-				}
-				else if (line[5] > .8f){
-					lostDir = 4;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed*.9);
-				}
-				*/
-				
-				if 			(curvetotal==-3){
-					lostDir = 4;
-					SetMotor(leftMotor, speed*.5);
-					SetMotor(rightMotor, speed);
-				}		
-				else if (curvetotal==-2){
-					lostDir = 4;
-					SetMotor(leftMotor, speed*.7);
-					SetMotor(rightMotor, speed);
-				}		
-				else if (curvetotal==-1){
-					lostDir = 4;
-					SetMotor(leftMotor, speed*.9);
-					SetMotor(rightMotor, speed);
-				}		
-				else if	(curvetotal==0){
-					lostDir = 4;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed);
-				}
-				else if (curvetotal==1){
-					lostDir = -3;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed);
-				}
-				else if (curvetotal==2){
-					lostDir = -3;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed*.9);
-				}		
-				else if (curvetotal==3){
-					lostDir = -3;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed*.7);
-				}		
-				else if (curvetotal==4){
-					lostDir = -3;
-					SetMotor(leftMotor, speed);
-					SetMotor(rightMotor, speed*.5);
-				}
-				else {
-					SetMotor(leftMotor, 0);
-					SetMotor(rightMotor, 0);
-				};
-	}		
-	SetMotor(leftMotor, 0);
-	SetMotor(rightMotor, 0);
-	Wait(1);
+			if (numLineSensor>=4){
+				leftSpeed=0;
+				rightSpeed=0;
+			}
+			if ((leftSpeed*speed) >= .3){leftSpeed = .3/speed;}
+			if ((rightSpeed*speed) >= .3){rightSpeed = .3/speed;}
+			
+			SetMotor(leftMotor,  (leftSpeed*speed));
+			SetMotor(rightMotor, (rightSpeed*speed));		
+	}
 }
 
 void turn(int direction){
@@ -511,13 +510,13 @@ void setOrientation(int direction){
 }
 
 void sprint(void) {
-	double speed = 1;
+	/*double speed = 1;
 	for(;criticalPath->next != NULL || criticalPath->value != locEnd; criticalPath = criticalPath->next){
 		if (criticalPath->value == locCurrent + 1 ) {setOrientation(EAST); forward(speed);}
 		if (criticalPath->value == locCurrent - 1 ) {setOrientation(WEST); forward(speed);}
 		if (criticalPath->value == locCurrent + 7 ) {setOrientation(SOUTH); forward(speed);}
 		if (criticalPath->value == locCurrent - 7 ) {setOrientation(NORTH); forward(speed);}
 	}
-																													//FINISH RED LED ON
+																													//FINISH RED LED ON*/
 }
 
